@@ -1,0 +1,46 @@
+# 学生模型配置示例
+
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# RT-DETR-s object detection model with P3-P5 outputs. For details see https://docs.ultralytics.com/models/rtdetr
+
+# Parameters
+nc: 80  # number of classes
+scales:
+  # [depth, width, max_channels]
+  s: [0.75, 0.75, 512]  # 缩小比例
+
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [24, 3, 2]]  # 0-P2/4, 减少初始通道数
+  - [-1, 4, C3, [96, 6]]        # stage 1, 使用标准C3模块，减少重复次数
+  - [-1, 1, DWConv, [96, 3, 2, 1, False]]  # 2-P3/8
+  - [-1, 4, C3, [192, 6]]       # stage 2, 使用标准C3模块
+  - [-1, 1, DWConv, [192, 3, 2, 1, False]]
+  - [-1, 4, C3, [384, 6]]       # stage 3, 使用标准C3模块替代ReNLANBiF
+  - [-1, 1, DWConv, [384, 3, 2, 1, False]]  # 8-P4/32
+  - [-1, 4, C3, [768, 6]]       # stage 4, 使用标准C3模块替代HGBlock
+
+head:
+  - [-1, 1, Conv, [192, 1, 1, None, 1, 1, False]]
+  - [-1, 1, AIFI, [768, 8]]
+  - [-1, 1, Conv, [192, 1, 1]]
+
+  - [-1, 1, SimConv, [192, 1, 1]]
+  - [[3, 5, -1], 1, BiFusion, [192]]
+  - [-1, 1, Conv, [192, 1, 1]]
+  - [-1, 6, RepBlock, [192]]  # 减少RepBlock重复次数
+
+  - [-1, 1, SimConv, [96, 1, 1]]
+  - [[1, 3, -1], 1, BiFusion, [96]]
+  - [-1, 1, Conv, [96, 1, 1]]
+  - [-1, 6, RepBlock, [192]]  # 减少RepBlock重复次数
+
+  - [-1, 1, SimConv, [96, 3, 2]]
+  - [[-1, 13], 1, Concat, [1]]
+  - [-1, 6, RepBlock, [192]]  # 减少RepBlock重复次数
+
+  - [-1, 1, SimConv, [192, 3, 2]]
+  - [[-1, 9], 1, Concat, [1]]
+  - [-1, 6, RepBlock, [192]]  # 减少RepBlock重复次数
+
+  - [[10, 15, 20], 1, RTDETRDecoder, [nc]]  # Detect(P3, P4, P5)

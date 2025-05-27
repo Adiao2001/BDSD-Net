@@ -1,0 +1,11 @@
+# dataset path
+path: ./
+train: ultralytics/wafer/images/train  # path + train
+val: ultralytics/wafer/images/val # path + val
+test: ultralytics/wafer/images/test # path + test
+
+# number of classes
+nc: 4
+
+# class names
+names: ['Peel','Dirty','Scratch','ElectrostaticDamage']
